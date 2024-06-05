@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  mysqldb:
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: my_secret_password
+    ports:
+      - 3306:3306
+    networks:
+      - netserverdb
+    volumes:
+      - mysqldata:/var/lib/mysql
+      
+  servercachemysql:
+    image: redis:latest
+    ports:
+      - 6379:6379
+    networks:
+      - netserverdb
+    volumes:
+      - redisdata:/data
+  
+  phpmyadmin:
+    image: phpmyadmin:latest
+    environment:
+      PMA_ARBITRARY: 1
+      UPLOAD_LIMIT: 1024M
+      MAX_EXECUTION_TIME: 3600
+      PMA_HOST: mysqldb
+      PMA_USER: root
+      PMA_PASSWORD: my_secret_password
+    ports:
+      - 7000:80
+    networks:
+      - netserverdb
+    depends_on:
+      - mysqldb
+    volumes:
+      - phpmyadmindata:/etc/phpmyadmin/config.user.inc.php
+
+volumes:
+  redisdata:
+  mysqldata:
+  phpmyadmindata:
+  
+networks:
+  netserverdb:
+    driver: bridge
